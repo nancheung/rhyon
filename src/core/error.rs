@@ -35,6 +35,7 @@ impl From<DbErr> for RhyonError {
 
 impl From<Box<dyn Error>> for RhyonError {
     fn from(err: Box<dyn Error>) -> Self {
+        tracing::error!("Error {}", err);
         RhyonError::ServerError(err.to_string())
     }
 }
