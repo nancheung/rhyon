@@ -4,3 +4,23 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+# axum是一个基于Tokio的Web框架，提供了高性能的HTTP服务器和路由功能
+axum = "0.8.3"
+
+# tokio是一个基于Rust的异步运行时，提供了异步I/O、定时器、任务调度等功能
+tokio = { version = "1.44.1", features = ["full"] }
+
+# tower是一个通用的网络服务框架，提供了一组可组合的构建块，用于构建异步网络服务
+tower = { version = "0.5.2" }
+tower-http = {version = "0.6.2",features = ["trace"]}
+
+# serde是一个用于序列化和反序列化Rust数据结构的库
+serde = { version = "1.0.219", features = ["derive"] }
+
+# tracing是一个用于事件记录和跟踪的库，支持异步和分布式系统
+tracing = "0.1.41"
+tracing-subscriber = {version = "0.3.19", features = [
+    "env-filter",
+    "time",
+    "local-time",
+]}
