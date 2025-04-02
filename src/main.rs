@@ -1,5 +1,6 @@
-use axum::routing::{Route, get};
-use axum::{Json, Router};
+use axum::Router;
+use axum::routing::get;
+use sea_orm::Database;
 use std::error::Error;
 use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
@@ -12,10 +13,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // 初始化日志记录器，设置日志级别为DEBUG
     fmt().with_max_level(filter::LevelFilter::DEBUG).init();
 
+    let db = Database::connect("postgres://postgres:123456@127.0.0.1:5432/rhyon").await?;
+
     let app = Router::new()
         .merge(Router::new().route("/", get(hello)))
         // TraceLayer是一个中间件，用于记录请求和响应的详细信息
-        .layer(TraceLayer::new_for_http());
+        .layer(TraceLayer::new_for_http())
+        .with_state(db);
 
     let listener = TcpListener::bind("0.0.0.0:8080").await?;
     tracing::debug!("rhyon service listening on {}", listener.local_addr()?);

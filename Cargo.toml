@@ -24,3 +24,8 @@ tracing-subscriber = {version = "0.3.19", features = [
     "time",
     "local-time",
 ]}
+
+# sea-orm是一个异步的ORM（对象关系映射）库，支持多种数据库
+sea-orm = { version = "1.1.8", features = ["sqlx-postgres","runtime-tokio-native-tls","macros",
+    "debug-print"
+] }
