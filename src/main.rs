@@ -1,3 +1,4 @@
+use crate::routes::*;
 use axum::Router;
 use axum::routing::get;
 use sea_orm::Database;
@@ -6,7 +7,10 @@ use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{filter, fmt};
 
-mod error;
+mod core;
+mod model;
+mod routes;
+mod service;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -17,6 +21,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let app = Router::new()
         .merge(Router::new().route("/", get(hello)))
+        .nest("/articles", articles_route::routes())
         // TraceLayer是一个中间件，用于记录请求和响应的详细信息
         .layer(TraceLayer::new_for_http())
         .with_state(db);

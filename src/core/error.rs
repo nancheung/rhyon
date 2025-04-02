@@ -1,7 +1,7 @@
+use crate::core::response::R;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use sea_orm::DbErr;
-use serde::Serialize;
 use std::error::Error;
 
 #[derive(Debug)]
@@ -10,12 +10,6 @@ pub enum RhyonError {
     NotFound,
     Validation(String),
     ServerError(String),
-}
-
-#[derive(Serialize)]
-struct R {
-    code: u16,
-    message: String,
 }
 
 impl IntoResponse for RhyonError {
@@ -27,12 +21,9 @@ impl IntoResponse for RhyonError {
             RhyonError::ServerError(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
         };
 
-        let body = R {
-            code: status.as_u16(),
-            message,
-        };
+        let body = R::<()>::error(status.as_u16(), &message);
 
-        (status, axum::Json(body)).into_response()
+        (status, body).into_response()
     }
 }
 
