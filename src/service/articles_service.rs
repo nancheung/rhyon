@@ -1,20 +1,21 @@
+use crate::core::page::page_params::PageParams;
+use crate::core::page::page_result::PageResult;
 use crate::model::articles::{Column, Entity, Model};
 use sea_orm::prelude::DateTimeWithTimeZone;
 use sea_orm::prelude::async_trait::async_trait;
 use sea_orm::{
     ColumnTrait, DatabaseConnection, DbErr, DerivePartialModel, EntityTrait, FromQueryResult,
-    QueryFilter, QueryOrder, QuerySelect,
+    PaginatorTrait, QueryFilter, QueryOrder,
 };
 use serde::Serialize;
 
 #[async_trait]
 pub trait ArticlesServiceTrait {
     /// 分页查询文章列表
-    async fn find_by_page(
+    async fn page_published(
         db: &DatabaseConnection,
-        page: u64,
-        page_size: u64,
-    ) -> Result<Vec<ArticleNoContentDTO>, DbErr>;
+        page_params: PageParams,
+    ) -> Result<PageResult<ArticleNoContentDTO>, DbErr>;
     /// 通过slug查询文章
     async fn find_by_slug(db: &DatabaseConnection, slug: String) -> Result<Option<Model>, DbErr>;
 }
@@ -23,19 +24,20 @@ pub struct ArticlesService;
 
 #[async_trait]
 impl ArticlesServiceTrait for ArticlesService {
-    async fn find_by_page(
+    async fn page_published(
         db: &DatabaseConnection,
-        page: u64,
-        page_size: u64,
-    ) -> Result<Vec<ArticleNoContentDTO>, DbErr> {
-        let offset = (page - 1) * page_size;
-        Entity::find()
+        page_params: PageParams,
+    ) -> Result<PageResult<ArticleNoContentDTO>, DbErr> {
+        let paginator = Entity::find()
+            .filter(Column::Status.eq("published"))
             .order_by_desc(Column::PublishedAt)
-            .limit(page_size)
-            .offset(offset)
             .into_partial_model::<ArticleNoContentDTO>()
-            .all(db)
-            .await
+            .paginate(db, page_params.page_size());
+
+        let total = paginator.num_items().await?;
+        let result = paginator.fetch_page(page_params.page() - 1).await?;
+
+        Ok(PageResult::new(page_params, total, result))
     }
 
     async fn find_by_slug(db: &DatabaseConnection, slug: String) -> Result<Option<Model>, DbErr> {
@@ -45,6 +47,7 @@ impl ArticlesServiceTrait for ArticlesService {
 
 #[derive(DerivePartialModel, FromQueryResult, Serialize)]
 #[sea_orm(entity = "Entity")]
+#[serde(rename_all = "camelCase")]
 pub struct ArticleNoContentDTO {
     pub summary: String,
     pub title: String,

@@ -1,11 +1,13 @@
 use crate::core::error::RhyonError;
+use crate::core::page::page_params::PageParams;
+use crate::core::page::page_result::PageResult;
 use crate::core::response::R;
 use crate::model::articles::Model;
 use crate::service::articles_service::{
     ArticleNoContentDTO, ArticlesService, ArticlesServiceTrait,
 };
 use axum::Router;
-use axum::extract::{Path, State};
+use axum::extract::{Path, Query, State};
 use axum::routing::get;
 use sea_orm::DatabaseConnection;
 
@@ -17,8 +19,9 @@ pub fn routes() -> Router<DatabaseConnection> {
 
 async fn get_all(
     State(db): State<DatabaseConnection>,
-) -> Result<R<Vec<ArticleNoContentDTO>>, RhyonError> {
-    let articles = ArticlesService::find_by_page(&db, 1, 10).await?;
+    Query(page_params): Query<PageParams>,
+) -> Result<R<PageResult<ArticleNoContentDTO>>, RhyonError> {
+    let articles = ArticlesService::page_published(&db, page_params).await?;
     Ok(articles.into())
 }
 
