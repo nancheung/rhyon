@@ -1,6 +1,6 @@
 use crate::core::page::page_params::PageParams;
 use crate::core::page::page_result::PageResult;
-use crate::model::articles::{Column, Entity, Model};
+use crate::model::articles::{Column, Entity};
 use sea_orm::prelude::DateTimeWithTimeZone;
 use sea_orm::prelude::async_trait::async_trait;
 use sea_orm::{
@@ -17,7 +17,10 @@ pub trait ArticlesServiceTrait {
         page_params: PageParams,
     ) -> Result<PageResult<ArticleNoContentDTO>, DbErr>;
     /// 通过slug查询文章
-    async fn find_by_slug(db: &DatabaseConnection, slug: String) -> Result<Option<Model>, DbErr>;
+    async fn find_by_slug(
+        db: &DatabaseConnection,
+        slug: String,
+    ) -> Result<Option<ArticleDTO>, DbErr>;
 }
 
 pub struct ArticlesService;
@@ -40,8 +43,15 @@ impl ArticlesServiceTrait for ArticlesService {
         Ok(PageResult::new(page_params, total, result))
     }
 
-    async fn find_by_slug(db: &DatabaseConnection, slug: String) -> Result<Option<Model>, DbErr> {
-        Entity::find().filter(Column::Slug.eq(slug)).one(db).await
+    async fn find_by_slug(
+        db: &DatabaseConnection,
+        slug: String,
+    ) -> Result<Option<ArticleDTO>, DbErr> {
+        Entity::find()
+            .filter(Column::Slug.eq(slug))
+            .into_partial_model::<ArticleDTO>()
+            .one(db)
+            .await
     }
 }
 
@@ -52,5 +62,16 @@ pub struct ArticleNoContentDTO {
     pub summary: String,
     pub title: String,
     pub slug: String,
+    pub published_at: Option<DateTimeWithTimeZone>,
+}
+
+#[derive(DerivePartialModel, FromQueryResult, Serialize)]
+#[sea_orm(entity = "Entity")]
+#[serde(rename_all = "camelCase")]
+pub struct ArticleDTO {
+    pub summary: String,
+    pub title: String,
+    pub slug: String,
+    pub content: String,
     pub published_at: Option<DateTimeWithTimeZone>,
 }
