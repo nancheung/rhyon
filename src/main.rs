@@ -17,7 +17,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // 初始化日志记录器，设置日志级别为DEBUG
     fmt().with_max_level(filter::LevelFilter::DEBUG).init();
 
-    let db = Database::connect("postgres://postgres:123456@127.0.0.1:5432/rhyon").await?;
+    let db = Database::connect("postgres://postgres:123456@postgres:5432/rhyon").await?;
 
     let app = Router::new()
         .merge(Router::new().route("/", get(hello)))
