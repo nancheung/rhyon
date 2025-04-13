@@ -29,3 +29,9 @@ tracing-subscriber = {version = "0.3.19", features = [
 sea-orm = { version = "1.1.8", features = ["sqlx-postgres","runtime-tokio-native-tls","macros",
     "debug-print"
 ] }
+
+# figment是一个用于配置管理的库，支持多种配置格式（如TOML、YAML等）
+figment = { version = "0.10.19", features = ["toml","env"] }
+
+# rust-embed是一个用于将静态文件嵌入到Rust二进制文件中的库，用于将配置文件打包到运行文件中
+rust-embed = { version = "8.7.0"}
