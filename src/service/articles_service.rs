@@ -1,13 +1,13 @@
 use crate::core::page::page_params::PageParams;
 use crate::core::page::page_result::PageResult;
-use crate::model::articles::{Column, Entity};
-use sea_orm::prelude::DateTimeWithTimeZone;
+use crate::model::articles::{ActiveModel, Column, Entity};
 use sea_orm::prelude::async_trait::async_trait;
+use sea_orm::prelude::{DateTimeWithTimeZone, Uuid};
 use sea_orm::{
-    ColumnTrait, DatabaseConnection, DbErr, DerivePartialModel, EntityTrait, FromQueryResult,
-    PaginatorTrait, QueryFilter, QueryOrder,
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, DbErr, DerivePartialModel, EntityTrait,
+    FromQueryResult, PaginatorTrait, QueryFilter, QueryOrder, Set,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[async_trait]
 pub trait ArticlesServiceTrait {
@@ -21,6 +21,8 @@ pub trait ArticlesServiceTrait {
         db: &DatabaseConnection,
         slug: String,
     ) -> Result<Option<ArticleDTO>, DbErr>;
+    /// 创建文章
+    async fn create(db: &DatabaseConnection, article: CreateArticleVO) -> Result<Uuid, DbErr>;
 }
 
 pub struct ArticlesService;
@@ -53,6 +55,12 @@ impl ArticlesServiceTrait for ArticlesService {
             .one(db)
             .await
     }
+
+    async fn create(db: &DatabaseConnection, article: CreateArticleVO) -> Result<Uuid, DbErr> {
+        let article_insert = Entity::insert(article.to_active_model()).exec(db).await?;
+
+        Ok(article_insert.last_insert_id)
+    }
 }
 
 #[derive(DerivePartialModel, FromQueryResult, Serialize)]
@@ -75,3 +83,33 @@ pub struct ArticleDTO {
     pub content: String,
     pub published_at: Option<DateTimeWithTimeZone>,
 }
+
+#[derive(DerivePartialModel, FromQueryResult, Deserialize)]
+#[sea_orm(entity = "Entity")]
+#[serde(rename_all = "camelCase")]
+pub struct CreateArticleVO {
+    pub summary: String,
+    pub title: String,
+    pub slug: String,
+    pub content: String,
+    pub status: String,
+    pub published_at: Option<DateTimeWithTimeZone>,
+}
+
+trait CreateArticleVOTrait {
+    fn to_active_model(self) -> ActiveModel;
+}
+impl CreateArticleVOTrait for CreateArticleVO {
+    fn to_active_model(self) -> ActiveModel {
+        ActiveModel {
+            summary: Set(self.summary),
+            title: Set(self.title),
+            slug: Set(self.slug),
+            content: Set(self.content),
+            status: Set(self.status),
+            published_at: Set(self.published_at),
+            ..Default::default()
+        }
+    }
+}
+
