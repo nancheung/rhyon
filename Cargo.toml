@@ -29,9 +29,15 @@ tracing-subscriber = {version = "0.3.19", features = [
 sea-orm = { version = "1.1.8", features = ["sqlx-postgres","runtime-tokio-native-tls","macros",
     "debug-print"
 ] }
+# async-trait是一个用于定义异步特性的库，允许在trait中使用异步方法
+async-trait = { version = "0.1.88" }
+uuid = { version = "1.16.0" }
 
 # figment是一个用于配置管理的库，支持多种配置格式（如TOML、YAML等）
 figment = { version = "0.10.19", features = ["toml","env"] }
 
 # rust-embed是一个用于将静态文件嵌入到Rust二进制文件中的库，用于将配置文件打包到运行文件中
 rust-embed = { version = "8.7.0"}
+
+# chrono是一个用于处理日期和时间的库，支持时区和格式化
+chrono = "0.4.40"
