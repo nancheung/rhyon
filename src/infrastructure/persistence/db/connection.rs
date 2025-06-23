@@ -1,4 +1,4 @@
-use crate::db::config;
+use crate::infrastructure::persistence::db::config;
 use sea_orm::{Database, DatabaseConnection, DbErr};
 
 pub async fn connect() -> Result<DatabaseConnection, DbErr> {

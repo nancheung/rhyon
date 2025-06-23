@@ -2,6 +2,7 @@ use crate::domain::article::repository::ArticleRepository;
 use crate::domain::article::service::ArticleDomainService;
 use axum::Router;
 use axum::routing::get;
+use infrastructure::persistence::db;
 use std::error::Error;
 use std::sync::Arc;
 use tokio::net::TcpListener;
@@ -9,7 +10,6 @@ use tower_http::trace::TraceLayer;
 use tracing_subscriber::{filter, fmt};
 
 mod core;
-mod db;
 mod domain;
 mod infrastructure;
 mod interface;
