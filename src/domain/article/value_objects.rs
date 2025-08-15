@@ -1,4 +1,4 @@
-use crate::core::error::RhyonError;
+use crate::shared::errors::RhyonError;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use uuid::Uuid;
