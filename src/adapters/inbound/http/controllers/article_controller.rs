@@ -8,6 +8,7 @@ use crate::adapters::inbound::http::dto::{
 };
 use crate::application::queries::{GetArticleBySlugQuery, GetArticlesQuery};
 use crate::application::services::ArticleApplicationService;
+use crate::domain::article::specifications::ArticleSortSpec;
 use crate::core::response::R;
 use crate::shared::errors::RhyonError;
 
@@ -38,7 +39,13 @@ impl ArticleController {
         State(controller): State<Arc<ArticleController>>,
         Query(params): Query<HttpPaginationRequest>,
     ) -> Result<R<HttpPaginationResponse<ArticleListHttpResponse>>, RhyonError> {
-        let query = GetArticlesQuery::new(params.into());
+        // 从HTTP参数构建查询对象
+        let sort = params.sort_string()
+            .map(|s| ArticleSortSpec::from(s))
+            .unwrap_or_default();
+        let pagination = params.into_pagination();
+        
+        let query = GetArticlesQuery::new(pagination).with_sort(sort);
         let result = controller.application_service.get_articles(query).await?;
         
         let response: HttpPaginationResponse<ArticleListHttpResponse> = result

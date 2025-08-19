@@ -1,21 +1,38 @@
 use crate::shared::pagination::QueryPagination;
+use crate::domain::article::specifications::{ArticleSpec, ArticleSortSpec};
 
 #[derive(Debug)]
 pub struct GetArticlesQuery {
-    pub status_filter: Option<String>,
+    pub specification: ArticleSpec,
+    pub sort: ArticleSortSpec,
     pub pagination: QueryPagination,
 }
 
 impl GetArticlesQuery {
     pub fn new(pagination: QueryPagination) -> Self {
         Self {
-            status_filter: Some("published".to_string()), // 默认只查询已发布的文章
+            specification: ArticleSpec::published(), // 默认只查询已发布的文章
+            sort: ArticleSortSpec::default(),
             pagination,
         }
     }
 
-    pub fn with_status(mut self, status: Option<String>) -> Self {
-        self.status_filter = status;
+    pub fn with_specification(mut self, spec: ArticleSpec) -> Self {
+        self.specification = spec;
         self
+    }
+
+    pub fn with_sort(mut self, sort: ArticleSortSpec) -> Self {
+        self.sort = sort;
+        self
+    }
+
+    pub fn with_status(self, status: Option<String>) -> Self {
+        let spec = match status.as_deref() {
+            Some("published") => ArticleSpec::published(),
+            Some("draft") => ArticleSpec::draft(),
+            _ => ArticleSpec::published(), // 默认已发布
+        };
+        self.with_specification(spec)
     }
 }

@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use crate::application::models::ArticleQueryModel;
 use crate::application::ports::ArticleReadRepository;
-use crate::application::queries::{ArticleQuerySpec, GetArticleBySlugQuery, GetArticlesQuery};
+use crate::application::queries::{GetArticleBySlugQuery, GetArticlesQuery};
 use crate::shared::errors::RhyonError;
 use crate::shared::pagination::QueryPage;
 
@@ -38,16 +38,12 @@ impl ArticleQueryHandler for ArticleQueryHandlerImpl {
         &self,
         query: GetArticlesQuery
     ) -> Result<QueryPage<ArticleQueryModel>, RhyonError> {
-        // 构建查询规约
-        let mut spec = ArticleQuerySpec::new()
-            .with_pagination(query.pagination);
-            
-        if let Some(status) = query.status_filter {
-            spec = spec.with_status(status);
-        }
-
-        // 委托给仓储执行
-        self.read_repository.find_by_spec(spec).await
+        // 使用新的规约系统执行查询
+        self.read_repository.find_by_specification(
+            query.specification,
+            query.sort,
+            query.pagination
+        ).await
     }
 
     async fn handle_get_by_slug(

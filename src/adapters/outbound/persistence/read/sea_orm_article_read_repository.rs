@@ -1,16 +1,14 @@
 use async_trait::async_trait;
-use chrono::TimeZone;
-use sea_orm::{
-    ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder,
-};
+use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter};
 
 use crate::application::models::ArticleQueryModel;
 use crate::application::ports::ArticleReadRepository;
-use crate::application::queries::ArticleQuerySpec;
+use crate::domain::article::specifications::{ArticleSpec, ArticleSortSpec};
 use crate::adapters::outbound::persistence::entities::{Column, Entity};
+use crate::adapters::outbound::persistence::read::QueryTranslator;
 use crate::core::types::conversions::Converter;
 use crate::shared::errors::RhyonError;
-use crate::shared::pagination::{QueryPage, SortCriteria};
+use crate::shared::pagination::{QueryPage, QueryPagination};
 
 pub struct SeaOrmArticleReadRepository {
     db: DatabaseConnection,
@@ -20,50 +18,27 @@ impl SeaOrmArticleReadRepository {
     pub fn new(db: DatabaseConnection) -> Self {
         Self { db }
     }
-
-    fn apply_sort(
-        &self, 
-        query: sea_orm::Select<Entity>, 
-        sort: &SortCriteria
-    ) -> sea_orm::Select<Entity> {
-        match sort {
-            SortCriteria::PublishedAtDesc => query.order_by_desc(Column::PublishedAt),
-            SortCriteria::PublishedAtAsc => query.order_by_asc(Column::PublishedAt),
-            SortCriteria::TitleAsc => query.order_by_asc(Column::Title),
-            SortCriteria::TitleDesc => query.order_by_desc(Column::Title),
-            SortCriteria::CreatedAtDesc => query.order_by_desc(Column::CreatedAt),
-            SortCriteria::CreatedAtAsc => query.order_by_asc(Column::CreatedAt),
-            SortCriteria::Multiple(criteria) => {
-                let mut q = query;
-                for c in criteria {
-                    q = self.apply_sort(q, c);
-                }
-                q
-            }
-        }
-    }
 }
 
 #[async_trait]
 impl ArticleReadRepository for SeaOrmArticleReadRepository {
-    async fn find_by_spec(
+    async fn find_by_specification(
         &self,
-        spec: ArticleQuerySpec,
+        specification: ArticleSpec,
+        sort: ArticleSortSpec,
+        pagination: QueryPagination,
     ) -> Result<QueryPage<ArticleQueryModel>, RhyonError> {
-        let repo_pagination = spec.pagination.to_repository_pagination();
+        let repo_pagination = pagination.to_repository_pagination();
 
         // 构建SeaORM查询
         let mut query = Entity::find();
 
-        // 应用业务过滤条件
-        if let Some(status) = &spec.status {
-            query = query.filter(Column::Status.eq(status));
-        }
+        // 应用查询条件
+        let condition = QueryTranslator::translate_specification(&specification);
+        query = query.filter(condition);
 
         // 应用排序
-        if let Some(sort) = repo_pagination.sort() {
-            query = self.apply_sort(query, sort);
-        }
+        query = QueryTranslator::apply_sort(query, &sort);
 
         // 执行分页查询
         let paginator = query.paginate(&self.db, repo_pagination.limit());
@@ -91,8 +66,8 @@ impl ArticleReadRepository for SeaOrmArticleReadRepository {
 
         Ok(QueryPage::new(
             models,
-            spec.pagination.page(),
-            spec.pagination.size(),
+            pagination.page(),
+            pagination.size(),
             total,
         ))
     }

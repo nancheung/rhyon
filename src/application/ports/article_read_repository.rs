@@ -1,16 +1,18 @@
 use async_trait::async_trait;
 use crate::application::models::ArticleQueryModel;
-use crate::application::queries::ArticleQuerySpec;
+use crate::domain::article::specifications::{ArticleSpec, ArticleSortSpec};
 use crate::shared::errors::RhyonError;
-use crate::shared::pagination::QueryPage;
+use crate::shared::pagination::{QueryPage, QueryPagination};
 
 /// 文章读仓储端口
 #[async_trait]
 pub trait ArticleReadRepository: Send + Sync {
-    /// 根据查询规约查找文章（支持分页）
-    async fn find_by_spec(
-        &self, 
-        spec: ArticleQuerySpec
+    /// 根据规约查找文章（支持复杂查询和分页）
+    async fn find_by_specification(
+        &self,
+        specification: ArticleSpec,
+        sort: ArticleSortSpec,
+        pagination: QueryPagination
     ) -> Result<QueryPage<ArticleQueryModel>, RhyonError>;
     
     /// 简单的slug查询（无需分页）
