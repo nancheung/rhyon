@@ -14,7 +14,7 @@ impl<T> QueryPage<T> {
         let total_pages = if total_items == 0 {
             0
         } else {
-            (total_items + page_size - 1) / page_size
+            total_items.div_ceil(page_size)
         };
 
         Self {

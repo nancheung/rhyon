@@ -1,6 +1,6 @@
-use async_trait::async_trait;
 use crate::shared::errors::RhyonError;
 use crate::shared::events::DomainEvent;
+use async_trait::async_trait;
 
 /// 内存事件发布器实现
 pub struct InMemoryEventPublisher;

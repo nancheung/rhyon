@@ -1,5 +1,5 @@
-use serde::Deserialize;
 use crate::domain::article::commands::{CreateArticleCommand, PublishArticleCommand};
+use serde::Deserialize;
 
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
 pub struct CreateArticleHttpRequest {
@@ -27,8 +27,6 @@ pub struct PublishArticleHttpRequest {
 
 impl From<PublishArticleHttpRequest> for PublishArticleCommand {
     fn from(req: PublishArticleHttpRequest) -> Self {
-        PublishArticleCommand {
-            slug: req.slug,
-        }
+        PublishArticleCommand { slug: req.slug }
     }
 }

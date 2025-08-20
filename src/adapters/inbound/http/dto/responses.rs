@@ -1,6 +1,6 @@
+use crate::application::models::ArticleQueryModel;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
-use crate::application::models::ArticleQueryModel;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct ArticleListHttpResponse {

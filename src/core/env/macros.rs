@@ -1,5 +1,5 @@
 #[macro_export]
-macro_rules! load_section {
+macro_rules! load_config {
     ($section:ident, $type:ty) => {{
         use serde::Deserialize;
         use $crate::core::env;

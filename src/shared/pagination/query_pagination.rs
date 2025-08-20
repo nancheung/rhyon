@@ -23,10 +23,7 @@ impl QueryPagination {
 
     /// 转换为仓储层分页参数
     pub fn to_repository_pagination(&self) -> RepositoryPagination {
-        RepositoryPagination::new(
-            (self.page - 1) * self.size,
-            self.size,
-        )
+        RepositoryPagination::new((self.page - 1) * self.size, self.size)
     }
 }
 

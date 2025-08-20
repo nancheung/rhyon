@@ -4,10 +4,10 @@ use sea_orm::{
 };
 use uuid::Uuid;
 
+use crate::adapters::outbound::persistence::entities::{ActiveModel, Column, Entity};
 use crate::domain::article::aggregate::Article;
 use crate::domain::article::ports::article_write_repository::ArticleWriteRepository;
 use crate::domain::article::value_objects::Slug;
-use crate::adapters::outbound::persistence::entities::{ActiveModel, Column, Entity};
 use crate::shared::errors::RhyonError;
 
 pub struct SeaOrmArticleWriteRepository {
@@ -33,7 +33,10 @@ impl ArticleWriteRepository for SeaOrmArticleWriteRepository {
             return Err(RhyonError::Domain("无法更新没有ID的文章".to_string()));
         }
 
-        let id = *article.id().as_ref().unwrap().value();
+        let id = *article
+            .id()
+            .ok_or_else(|| RhyonError::Domain("无法更新没有ID的文章".to_string()))?
+            .value();
         let mut active_model: ActiveModel = article.into();
         active_model.id = Set(id);
 

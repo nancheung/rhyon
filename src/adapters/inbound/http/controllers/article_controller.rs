@@ -1,5 +1,5 @@
-use axum::extract::{Path, Query, State};
 use axum::Json;
+use axum::extract::{Path, Query, State};
 use std::sync::Arc;
 
 use crate::adapters::inbound::http::dto::{
@@ -8,8 +8,8 @@ use crate::adapters::inbound::http::dto::{
 };
 use crate::application::queries::{GetArticleBySlugQuery, GetArticlesQuery};
 use crate::application::services::ArticleApplicationService;
-use crate::domain::article::specifications::ArticleSortSpec;
 use crate::core::response::R;
+use crate::domain::article::specifications::ArticleSortSpec;
 use crate::shared::errors::RhyonError;
 
 pub struct ArticleController {
@@ -18,7 +18,9 @@ pub struct ArticleController {
 
 impl ArticleController {
     pub fn new(application_service: Arc<dyn ArticleApplicationService>) -> Self {
-        Self { application_service }
+        Self {
+            application_service,
+        }
     }
 
     /// POST /articles - 创建文章
@@ -40,18 +42,18 @@ impl ArticleController {
         Query(params): Query<HttpPaginationRequest>,
     ) -> Result<R<HttpPaginationResponse<ArticleListHttpResponse>>, RhyonError> {
         // 从HTTP参数构建查询对象
-        let sort = params.sort_string()
-            .map(|s| ArticleSortSpec::from(s))
+        let sort = params
+            .sort_string()
+            .map(ArticleSortSpec::from)
             .unwrap_or_default();
         let pagination = params.into_pagination();
-        
+
         let query = GetArticlesQuery::new(pagination).with_sort(sort);
         let result = controller.application_service.get_articles(query).await?;
-        
-        let response: HttpPaginationResponse<ArticleListHttpResponse> = result
-            .map(|model| model.into())
-            .into();
-            
+
+        let response: HttpPaginationResponse<ArticleListHttpResponse> =
+            result.map(|model| model.into()).into();
+
         Ok(R::success(response))
     }
 
@@ -66,7 +68,7 @@ impl ArticleController {
             .get_article_by_slug(query)
             .await?
             .ok_or(RhyonError::NotFound)?;
-            
+
         Ok(R::success(article.into()))
     }
 }

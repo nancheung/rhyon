@@ -4,7 +4,7 @@ use std::fmt::Debug;
 pub trait Specification<T>: Debug + Clone {
     /// 检查实体是否满足规约
     fn is_satisfied_by(&self, entity: &T) -> bool;
-    
+
     /// 与另一个规约进行AND组合
     fn and<S>(self, other: S) -> AndSpecification<Self, S>
     where
@@ -13,7 +13,7 @@ pub trait Specification<T>: Debug + Clone {
     {
         AndSpecification::new(self, other)
     }
-    
+
     /// 与另一个规约进行OR组合
     fn or<S>(self, other: S) -> OrSpecification<Self, S>
     where
@@ -22,7 +22,7 @@ pub trait Specification<T>: Debug + Clone {
     {
         OrSpecification::new(self, other)
     }
-    
+
     /// 对当前规约进行NOT操作
     fn not(self) -> NotSpecification<Self>
     where

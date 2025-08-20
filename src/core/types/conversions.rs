@@ -12,6 +12,6 @@ impl Converter<DateTime<Utc>> for DateTime<FixedOffset> {
 
 impl Converter<DateTime<FixedOffset>> for DateTime<Utc> {
     fn convert(&self) -> DateTime<FixedOffset> {
-        self.with_timezone(&FixedOffset::east_opt(0).unwrap())
+        self.with_timezone(&FixedOffset::east_opt(0).expect("UTC+0 offset should be valid"))
     }
 }

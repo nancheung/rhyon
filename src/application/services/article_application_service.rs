@@ -15,10 +15,16 @@ pub trait ArticleApplicationService: Send + Sync {
     // 命令操作
     async fn create_article(&self, command: CreateArticleCommand) -> Result<Uuid, RhyonError>;
     async fn publish_article(&self, command: PublishArticleCommand) -> Result<(), RhyonError>;
-    
+
     // 查询操作
-    async fn get_articles(&self, query: GetArticlesQuery) -> Result<QueryPage<ArticleQueryModel>, RhyonError>;
-    async fn get_article_by_slug(&self, query: GetArticleBySlugQuery) -> Result<Option<ArticleQueryModel>, RhyonError>;
+    async fn get_articles(
+        &self,
+        query: GetArticlesQuery,
+    ) -> Result<QueryPage<ArticleQueryModel>, RhyonError>;
+    async fn get_article_by_slug(
+        &self,
+        query: GetArticleBySlugQuery,
+    ) -> Result<Option<ArticleQueryModel>, RhyonError>;
 }
 
 /// 文章应用服务实现
@@ -49,11 +55,17 @@ impl ArticleApplicationService for ArticleApplicationServiceImpl {
         self.command_handler.handle_publish(command).await
     }
 
-    async fn get_articles(&self, query: GetArticlesQuery) -> Result<QueryPage<ArticleQueryModel>, RhyonError> {
+    async fn get_articles(
+        &self,
+        query: GetArticlesQuery,
+    ) -> Result<QueryPage<ArticleQueryModel>, RhyonError> {
         self.query_handler.handle_get_articles(query).await
     }
 
-    async fn get_article_by_slug(&self, query: GetArticleBySlugQuery) -> Result<Option<ArticleQueryModel>, RhyonError> {
+    async fn get_article_by_slug(
+        &self,
+        query: GetArticleBySlugQuery,
+    ) -> Result<Option<ArticleQueryModel>, RhyonError> {
         self.query_handler.handle_get_by_slug(query).await
     }
 }

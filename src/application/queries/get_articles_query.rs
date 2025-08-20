@@ -1,5 +1,5 @@
+use crate::domain::article::specifications::{ArticleSortSpec, ArticleSpec};
 use crate::shared::pagination::QueryPagination;
-use crate::domain::article::specifications::{ArticleSpec, ArticleSortSpec};
 
 #[derive(Debug)]
 pub struct GetArticlesQuery {

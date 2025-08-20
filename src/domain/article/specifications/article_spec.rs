@@ -1,5 +1,5 @@
-use crate::shared::query::{Specification, QueryCriteria};
 use crate::domain::article::aggregate::Article;
+use crate::shared::query::{QueryCriteria, Specification};
 use chrono::{DateTime, Utc};
 
 /// Article领域的查询规约
@@ -36,52 +36,52 @@ impl ArticleSpec {
     pub fn published() -> Self {
         ArticleSpec::Published
     }
-    
+
     pub fn draft() -> Self {
         ArticleSpec::Draft
     }
-    
+
     pub fn title_eq(title: impl Into<String>) -> Self {
         ArticleSpec::TitleEquals(title.into())
     }
-    
+
     pub fn title_contains(title: impl Into<String>) -> Self {
         ArticleSpec::TitleContains(title.into())
     }
-    
+
     pub fn slug_eq(slug: impl Into<String>) -> Self {
         ArticleSpec::SlugEquals(slug.into())
     }
-    
+
     pub fn summary_contains(summary: impl Into<String>) -> Self {
         ArticleSpec::SummaryContains(summary.into())
     }
-    
+
     pub fn content_contains(content: impl Into<String>) -> Self {
         ArticleSpec::ContentContains(content.into())
     }
-    
+
     pub fn created_after(date: DateTime<Utc>) -> Self {
         ArticleSpec::CreatedAfter(date)
     }
-    
+
     pub fn created_before(date: DateTime<Utc>) -> Self {
         ArticleSpec::CreatedBefore(date)
     }
-    
+
     pub fn published_after(date: DateTime<Utc>) -> Self {
         ArticleSpec::PublishedAfter(date)
     }
-    
+
     pub fn published_before(date: DateTime<Utc>) -> Self {
         ArticleSpec::PublishedBefore(date)
     }
-    
+
     /// 创建复杂查询
     pub fn complex() -> ArticleQueryBuilder {
         ArticleQueryBuilder::new()
     }
-    
+
     /// 转换为SQL查询条件
     pub fn to_query_criteria(&self) -> QueryCriteria {
         match self {
@@ -90,12 +90,20 @@ impl ArticleSpec {
             ArticleSpec::TitleEquals(title) => QueryCriteria::eq("title", title.clone()),
             ArticleSpec::TitleContains(title) => QueryCriteria::contains("title", title.clone()),
             ArticleSpec::SlugEquals(slug) => QueryCriteria::eq("slug", slug.clone()),
-            ArticleSpec::SummaryContains(summary) => QueryCriteria::contains("summary", summary.clone()),
-            ArticleSpec::ContentContains(content) => QueryCriteria::contains("content", content.clone()),
+            ArticleSpec::SummaryContains(summary) => {
+                QueryCriteria::contains("summary", summary.clone())
+            }
+            ArticleSpec::ContentContains(content) => {
+                QueryCriteria::contains("content", content.clone())
+            }
             ArticleSpec::CreatedAfter(date) => QueryCriteria::gt("created_at", date.timestamp()),
             ArticleSpec::CreatedBefore(date) => QueryCriteria::lt("created_at", date.timestamp()),
-            ArticleSpec::PublishedAfter(date) => QueryCriteria::gt("published_at", date.timestamp()),
-            ArticleSpec::PublishedBefore(date) => QueryCriteria::lt("published_at", date.timestamp()),
+            ArticleSpec::PublishedAfter(date) => {
+                QueryCriteria::gt("published_at", date.timestamp())
+            }
+            ArticleSpec::PublishedBefore(date) => {
+                QueryCriteria::lt("published_at", date.timestamp())
+            }
             ArticleSpec::Complex(criteria) => criteria.clone(),
         }
     }
@@ -106,23 +114,23 @@ impl Specification<Article> for ArticleSpec {
         match self {
             ArticleSpec::Published => article.status.to_string() == "published",
             ArticleSpec::Draft => article.status.to_string() == "draft",
-            ArticleSpec::TitleEquals(title) => &article.title.value() == title,
+            ArticleSpec::TitleEquals(title) => article.title.value() == title,
             ArticleSpec::TitleContains(title) => article.title.value().contains(title),
-            ArticleSpec::SlugEquals(slug) => &article.slug.value() == slug,
+            ArticleSpec::SlugEquals(slug) => article.slug.value() == slug,
             ArticleSpec::SummaryContains(summary) => article.summary.value().contains(summary),
             ArticleSpec::ContentContains(content) => article.content.value().contains(content),
             ArticleSpec::CreatedAfter(date) => article.created_at > *date,
             ArticleSpec::CreatedBefore(date) => article.created_at < *date,
-            ArticleSpec::PublishedAfter(date) => {
-                article.published_at.map_or(false, |pub_date| pub_date > *date)
-            },
-            ArticleSpec::PublishedBefore(date) => {
-                article.published_at.map_or(false, |pub_date| pub_date < *date)
-            },
+            ArticleSpec::PublishedAfter(date) => article
+                .published_at
+                .is_some_and(|pub_date| pub_date > *date),
+            ArticleSpec::PublishedBefore(date) => article
+                .published_at
+                .is_some_and(|pub_date| pub_date < *date),
             ArticleSpec::Complex(_) => {
                 // 复杂查询需要在数据库层面处理，这里返回true
                 true
-            },
+            }
         }
     }
 }
@@ -137,39 +145,39 @@ impl ArticleQueryBuilder {
     pub fn new() -> Self {
         Self { criteria: None }
     }
-    
+
     pub fn published(self) -> Self {
         self.add_criteria(QueryCriteria::eq("status", "published"))
     }
-    
+
     pub fn draft(self) -> Self {
         self.add_criteria(QueryCriteria::eq("status", "draft"))
     }
-    
+
     pub fn title_eq(self, title: impl Into<String>) -> Self {
         self.add_criteria(QueryCriteria::eq("title", title.into()))
     }
-    
+
     pub fn title_contains(self, title: impl Into<String>) -> Self {
         self.add_criteria(QueryCriteria::contains("title", title.into()))
     }
-    
+
     pub fn slug_eq(self, slug: impl Into<String>) -> Self {
         self.add_criteria(QueryCriteria::eq("slug", slug.into()))
     }
-    
+
     pub fn content_contains(self, content: impl Into<String>) -> Self {
         self.add_criteria(QueryCriteria::contains("content", content.into()))
     }
-    
+
     pub fn created_after(self, date: DateTime<Utc>) -> Self {
         self.add_criteria(QueryCriteria::gt("created_at", date.timestamp()))
     }
-    
+
     pub fn created_before(self, date: DateTime<Utc>) -> Self {
         self.add_criteria(QueryCriteria::lt("created_at", date.timestamp()))
     }
-    
+
     pub fn and(self, other: ArticleQueryBuilder) -> Self {
         match (self.criteria, other.criteria) {
             (Some(left), Some(right)) => Self {
@@ -181,7 +189,7 @@ impl ArticleQueryBuilder {
             (None, None) => Self { criteria: None },
         }
     }
-    
+
     pub fn or(self, other: ArticleQueryBuilder) -> Self {
         match (self.criteria, other.criteria) {
             (Some(left), Some(right)) => Self {
@@ -193,14 +201,14 @@ impl ArticleQueryBuilder {
             (None, None) => Self { criteria: None },
         }
     }
-    
+
     pub fn build(self) -> ArticleSpec {
         match self.criteria {
             Some(criteria) => ArticleSpec::Complex(criteria),
             None => ArticleSpec::Published, // 默认返回已发布
         }
     }
-    
+
     fn add_criteria(self, criteria: QueryCriteria) -> Self {
         match self.criteria {
             Some(existing) => Self {

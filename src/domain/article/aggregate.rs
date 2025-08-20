@@ -74,11 +74,8 @@ impl Article {
 
         // 记录创建事件（暂时使用临时ID，保存后会更新）
         let temp_id = Uuid::new_v4();
-        let event = ArticleCreatedEvent::new(
-            temp_id,
-            title.value().to_string(),
-            slug.value().to_string(),
-        );
+        let event =
+            ArticleCreatedEvent::new(temp_id, title.value().to_string(), slug.value().to_string());
         article.add_event(Box::new(event));
 
         Ok(article)
@@ -110,11 +107,16 @@ impl Article {
         }
     }
 
+    /// 获取构建器用于重建文章
+    pub fn builder() -> ArticleBuilder {
+        ArticleBuilder::new()
+    }
+
     /// 设置技术ID（仅在持久化层调用）
     pub fn set_id(&mut self, id: Uuid) {
         if self.id.is_none() {
             self.id = Some(Id::from(id));
-            
+
             // 更新创建事件中的ID
             for event in &mut self.uncommitted_events {
                 if event.event_type() == "article.created" {
@@ -142,11 +144,7 @@ impl Article {
 
         // 记录发布事件
         if let Some(id) = &self.id {
-            let event = ArticlePublishedEvent::new(
-                *id.value(),
-                self.slug.value().to_string(),
-                now,
-            );
+            let event = ArticlePublishedEvent::new(*id.value(), self.slug.value().to_string(), now);
             self.add_event(Box::new(event));
         }
 
@@ -246,5 +244,84 @@ impl Article {
 
     pub fn published_at(&self) -> Option<&DateTime<Utc>> {
         self.published_at.as_ref()
+    }
+}
+
+/// 文章构建器（用于测试和复杂构建场景）
+#[derive(Debug, Default)]
+pub struct ArticleBuilder {
+    id: Option<Id>,
+    slug: Option<Slug>,
+    title: Option<Title>,
+    summary: Option<Summary>,
+    content: Option<Content>,
+    status: Option<Status>,
+    created_at: Option<DateTime<Utc>>,
+    updated_at: Option<DateTime<Utc>>,
+    published_at: Option<Option<DateTime<Utc>>>,
+}
+
+impl ArticleBuilder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn id(mut self, id: Option<Id>) -> Self {
+        self.id = id;
+        self
+    }
+
+    pub fn slug(mut self, slug: Slug) -> Self {
+        self.slug = Some(slug);
+        self
+    }
+
+    pub fn title(mut self, title: Title) -> Self {
+        self.title = Some(title);
+        self
+    }
+
+    pub fn summary(mut self, summary: Summary) -> Self {
+        self.summary = Some(summary);
+        self
+    }
+
+    pub fn content(mut self, content: Content) -> Self {
+        self.content = Some(content);
+        self
+    }
+
+    pub fn status(mut self, status: Status) -> Self {
+        self.status = Some(status);
+        self
+    }
+
+    pub fn created_at(mut self, created_at: DateTime<Utc>) -> Self {
+        self.created_at = Some(created_at);
+        self
+    }
+
+    pub fn updated_at(mut self, updated_at: DateTime<Utc>) -> Self {
+        self.updated_at = Some(updated_at);
+        self
+    }
+
+    pub fn published_at(mut self, published_at: Option<DateTime<Utc>>) -> Self {
+        self.published_at = Some(published_at);
+        self
+    }
+
+    pub fn build(self) -> Article {
+        Article::reconstitute(
+            self.id,
+            self.slug.expect("slug is required"),
+            self.title.expect("title is required"),
+            self.summary.expect("summary is required"),
+            self.content.expect("content is required"),
+            self.status.expect("status is required"),
+            self.created_at.expect("created_at is required"),
+            self.updated_at.expect("updated_at is required"),
+            self.published_at.unwrap_or(None),
+        )
     }
 }

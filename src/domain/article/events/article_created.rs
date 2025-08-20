@@ -1,5 +1,5 @@
-use chrono::{DateTime, Utc};
 use crate::shared::events::DomainEvent;
+use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 #[derive(Debug)]

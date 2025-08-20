@@ -9,11 +9,16 @@ pub async fn connect() -> Result<DatabaseConnection, DbErr> {
         config.username, config.password, config.host, config.port, config.database
     );
 
-    tracing::debug!("正在连接数据库: {}://{}:{}/{}", 
-        "postgres", config.host, config.port, config.database);
+    tracing::debug!(
+        "正在连接数据库: {}://{}:{}/{}",
+        "postgres",
+        config.host,
+        config.port,
+        config.database
+    );
 
     let db = Database::connect(connection_string).await?;
-    
+
     tracing::info!("✅ 数据库连接成功");
     Ok(db)
 }

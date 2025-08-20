@@ -1,5 +1,5 @@
-use serde::Serialize;
 use crate::shared::pagination::QueryPage;
+use serde::Serialize;
 
 #[derive(Debug, Serialize)]
 pub struct HttpPaginationResponse<T> {

@@ -13,6 +13,13 @@ pub trait DomainEvent: Debug + Send + Sync {
 /// 事件发布器trait
 #[async_trait]
 pub trait EventPublisher: Send + Sync {
-    async fn publish(&self, event: Box<dyn DomainEvent>) -> Result<(), crate::shared::errors::RhyonError>;
-    async fn publish_all(&self, events: Vec<Box<dyn DomainEvent>>) -> Result<(), crate::shared::errors::RhyonError>;
+    async fn publish(
+        &self,
+        event: Box<dyn DomainEvent>,
+    ) -> Result<(), crate::shared::errors::RhyonError>;
+
+    async fn publish_all(
+        &self,
+        events: Vec<Box<dyn DomainEvent>>,
+    ) -> Result<(), crate::shared::errors::RhyonError>;
 }

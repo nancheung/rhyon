@@ -1,14 +1,14 @@
-use serde::Deserialize;
 use crate::shared::pagination::QueryPagination;
+use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct HttpPaginationRequest {
     #[serde(default = "default_page")]
     pub page: u64,
-    
-    #[serde(default = "default_size")]  
+
+    #[serde(default = "default_size")]
     pub size: u64,
-    
+
     pub sort: Option<String>, // "published_at:desc,title:asc" - 将在应用层处理
 }
 
@@ -16,7 +16,7 @@ impl HttpPaginationRequest {
     pub fn into_pagination(self) -> QueryPagination {
         QueryPagination::new(self.page, self.size)
     }
-    
+
     pub fn sort_string(&self) -> Option<String> {
         self.sort.clone()
     }

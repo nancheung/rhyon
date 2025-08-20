@@ -11,13 +11,13 @@ use crate::shared::pagination::QueryPage;
 #[async_trait]
 pub trait ArticleQueryHandler: Send + Sync {
     async fn handle_get_articles(
-        &self, 
-        query: GetArticlesQuery
+        &self,
+        query: GetArticlesQuery,
     ) -> Result<QueryPage<ArticleQueryModel>, RhyonError>;
-    
+
     async fn handle_get_by_slug(
-        &self, 
-        query: GetArticleBySlugQuery
+        &self,
+        query: GetArticleBySlugQuery,
     ) -> Result<Option<ArticleQueryModel>, RhyonError>;
 }
 
@@ -36,19 +36,17 @@ impl ArticleQueryHandlerImpl {
 impl ArticleQueryHandler for ArticleQueryHandlerImpl {
     async fn handle_get_articles(
         &self,
-        query: GetArticlesQuery
+        query: GetArticlesQuery,
     ) -> Result<QueryPage<ArticleQueryModel>, RhyonError> {
         // 使用新的规约系统执行查询
-        self.read_repository.find_by_specification(
-            query.specification,
-            query.sort,
-            query.pagination
-        ).await
+        self.read_repository
+            .find_by_specification(query.specification, query.sort, query.pagination)
+            .await
     }
 
     async fn handle_get_by_slug(
         &self,
-        query: GetArticleBySlugQuery
+        query: GetArticleBySlugQuery,
     ) -> Result<Option<ArticleQueryModel>, RhyonError> {
         self.read_repository.find_by_slug(&query.slug).await
     }

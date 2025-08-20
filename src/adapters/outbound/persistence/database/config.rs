@@ -1,5 +1,5 @@
-use serde::Deserialize;
 use crate::load_config;
+use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct DbConfig {
